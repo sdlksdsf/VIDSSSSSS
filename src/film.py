@@ -73,24 +73,60 @@ def wave(cam, p, k, inv=False):
     return dict(c=px(cam, p), r=ease_out(k) * 2500 if k < 1 else 1e6, inv=inv)
 
 # ---------------------------------------------------------------- shots
+S1_TF = 0.55                  # the snap lands half a second in: the premise is SHOWN before it is said
+S1_STEP = 1.90                # Eli strolls out of the ball's path
+S1_WINK = wt(1, 3) - .02      # "...time." -> looks straight at the viewer
+def speedlines(k, seed):
+    def f(dr):
+        r = random.Random(seed)
+        for i in range(46):
+            an = r.uniform(0, 2 * math.pi); r0 = r.uniform(560, 900); r1 = r0 + r.uniform(200, 700)
+            cx, cy = W / SS / 2, H / SS * .40
+            dr.line([(cx + math.cos(an) * r0, cy + math.sin(an) * r0 * 1.5), (cx + math.cos(an) * r1, cy + math.sin(an) * r1 * 1.5)],
+                    fill=(255, 255, 255, int(190 * k)), width=r.choice([3, 5, 8]))
+    return f
 def S1(lt, d, t):
-    tf = wt(1, 2) + .05 - 0.0; tw = min(lt, tf); u = tw / tf; af = lt - tf
-    sc = Scene(fog=FOG_DAY, sky=sky_day()); yard(sc); yard_kids(sc, tw + .6)
-    scared = af < .35
-    face = dict(eyes='wide', mouth='o', brows='up') if scared else dict(eyes='open', mouth='grin')
-    pose = dict(ar=(lerp(10, 112, smooth(u * 1.3)), 18), al=(lerp(0, 60, smooth(u * 1.6)), 25) if scared else (5, 6), lean=-8 if scared else 0,
-                head=(0, 0) if scared else (lerp(0, 38, smooth((af - .35) * 2.5)), 0))
-    c = character(sc, (0, 0, 0), 0, pose, eli('kid', face), hero=True)
-    b = lerp(V(1.3, 3.7, 14.5), V(.1, 3.02, 1.25), u ** .85)
-    sc.sprite(b, .52, .52, (225, 55, 55), hi=(255, 150, 150), shadow=True, bias=-.3)
+    tf = S1_TF; tw = min(lt, tf); u = tw / tf; af = lt - tf
+    sc = Scene(fog=FOG_DAY, sky=sky_day()); yard(sc); yard_kids(sc, tw + 1.25)
+    sx = smooth((lt - S1_STEP) / .42); wk = smooth((lt - S1_WINK) / .16)
+    if af < .30: face = dict(eyes='wide', mouth='o', brows='up')
+    elif af < .85: face = dict(eyes='open', mouth='o', brows='up')
+    elif wk > .5: face = dict(eyes='happy', mouth='grin')
+    else: face = dict(eyes='open', mouth='grin')
+    rel = smooth((af - .55) / .5)                       # he relaxes once he realises it worked
+    hop = math.sin(clamp((lt - S1_STEP) / .42) * math.pi)
+    pose = dict(ar=(lerp(lerp(70, 116, smooth(u * 1.5)), 96, sx), 18), al=(lerp(62, 6, rel), lerp(26, 6, rel)), lean=lerp(-10, 0, rel),
+                roll=-9 * hop, y=.28 * hop, ll=18 * hop, lr=-14 * hop,
+                head=(lerp(0, -14, wk), lerp(0, -4, rel) * (1 - wk)))
+    c = character(sc, (-1.2 * sx, 0, 0), 0, pose, eli('kid', face), hero=True)
+    b0 = V(.95, 3.55, 7.6); b1 = V(.1, 3.02, 1.22)
+    nud = ease_out((lt - S1_STEP - .34) / .5)             # a little flick once he is clear
+    b = lerp(b0, b1, u ** .9) + V(.42 * nud, .10 * math.sin(nud * math.pi), 0)
+    dn = (b0 - b1) / np.linalg.norm(b0 - b1)
+    for i in range(1, 7):
+        sc.sprite(b + dn * (.34 * i * (.5 + .5 * u)), .50 - .05 * i, .50 - .05 * i, (255, 120, 110), alpha=int((120 - 17 * i) * (1 - nud)), bias=-.2)
+    sc.sprite(b, .54, .54, (225, 55, 55), hi=(255, 150, 150), shadow=True, bias=-.3)
+    r = random.Random(4)
+    for i in range(16):                                   # turf kicked up by his flinch, left hanging in the air
+        an = r.uniform(0, 6.28); rr = r.uniform(.5, 1.5); h = r.uniform(.3, 1.9) * (u ** .5); sz = r.uniform(.08, .17)
+        sc.box(T(math.cos(an) * rr * (.5 + .5 * u), .1 + h, math.sin(an) * rr * (.5 + .5 * u) + .2) @ RY(i * 40) @ RX(i * 25 + tw * 300), (sz, sz, sz),
+               r.choice([(98, 172, 86), (120, 92, 60), (80, 150, 72)]), shadow=False)
+    for i in range(3 if af < .9 else 0):                  # sweat drops
+        sc.sprite(V(-.75 - .12 * i, 4.35 - .22 * i - .4 * (1 - u), .55), .07, .10, (170, 220, 255), hi=(255, 255, 255), bias=-.4)
+    a0 = math.atan2(2.2, 5.2); r0 = math.hypot(2.2, 5.2)
     if af < 0:
-        cam = Cam(V(3.0, 3.3, lerp(9.0, 7.2, u)) + shake(t, .02), (0, 2.9, 0), fov=44)
+        cam = Cam(V(lerp(2.9, 2.2, u), 3.2, lerp(7.0, 5.2, u)) + shake(t, .06), (0, 3.0, .6), fov=lerp(52, 43, u))
     else:
-        a = math.radians(lerp(22.6, 66, smooth(af / max(.1, d - tf)))); r = lerp(7.8, 6.6, smooth(af / (d - tf)))
-        cam = Cam((math.sin(a) * r, lerp(3.3, 3.2, clamp(af)), math.cos(a) * r), (0, lerp(2.9, 2.95, clamp(af * 2)), lerp(0, .5, smooth(af * 2))), fov=44)
+        k = 1 - math.exp(-af * 2.6)                       # whip around, then drift (bullet time)
+        sw = smooth((lt - S1_STEP + .12) / .6)
+        a = a0 + math.radians(lerp(0, 30, k) - 72 * sw); rr = lerp(r0, 6.3, k) - 1.9 * wk
+        tg = lerp(V(0, 3.0, .6), V(-1.2, 3.55, .1), max(sx * .55, wk * .9))
+        cam = Cam((math.sin(a) * rr + tg[0], lerp(3.2, 3.5, wk), math.cos(a) * rr), tg, fov=43)
     post = {}
-    if af >= 0:
-        post = dict(freeze=wave(cam, c['hand_r'], af / .45), flash=max(0, .5 - af * 3), overlay=[burst(px(cam, c['hand_r']), af / .3)])
+    if af < 0:
+        post['overlay'] = [speedlines(.55 + .45 * u, int(t * FPS))]
+    else:
+        post.update(freeze=wave(cam, c['hand_r'], af / .40), flash=max(0, .6 - af * 3.2), overlay=[burst(px(cam, c['hand_r']), af / .3)])
     return sc, cam, post
 
 def S2a(lt, d, t):
@@ -475,7 +511,7 @@ def events():
     def dur(i): return SHOTS[i + 1][0] - SHOTS[i][0]
     ix = {fn.__name__: i for i, (t0, fn) in enumerate(SHOTS) if fn}
     st = lambda n: SHOTS[ix[n]][0]; du = lambda n: dur(ix[n])
-    E = dict(snaps=[wt(1, 2) + .05, st('S2a') + du('S2a') - .30] + [st('S4b') + du('S4b') / 3 * (i + .42) for i in range(3)] + [st('S4c') + du('S4c') * .42]
+    E = dict(flick=S1_STEP + .34, wink=S1_WINK, snaps=[S1_TF, st('S2a') + du('S2a') - .30] + [st('S4b') + du('S4b') / 3 * (i + .42) for i in range(3)] + [st('S4c') + du('S4c') * .42]
              + [st('S10a') + du('S10a') / 3 * (i + .42) for i in range(3)],
              unfreeze=[st('S3c') + du('S3c') * .5], cuts=[t for t, f in SHOTS], st={n: st(n) for n in ix}, du={n: du(n) for n in ix}, end=END, dur=DUR,
              smile_stop=st('S5c') + (wt(22, 1) - ps(22)) + .12)

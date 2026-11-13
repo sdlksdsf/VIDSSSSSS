@@ -93,7 +93,7 @@ st, du = E['st'], E['du']
 CH = {'C': (48, 52, 55), 'Am': (45, 48, 52), 'F': (41, 45, 48), 'G': (43, 47, 50), 'Em': (40, 43, 47), 'Dm': (38, 41, 45)}
 bar = 2.0; tA1 = st['S4a']
 prog = ['C', 'Am', 'F', 'G']
-k = 0; t = 0.0
+k = 0; t = E['snaps'][0] + .55          # music only starts once the world has frozen
 while t < tA1 - .1:
     r, th, fi = CH[prog[k % 4]]; pat = [r, th, fi, r + 12, fi, th, fi, r + 12]
     for j, n in enumerate(pat):
@@ -144,7 +144,16 @@ while t < tEnd - .3:
 cutn = int(tEnd * SR); music[cutn - int(.03 * SR):cutn] *= np.linspace(1, 0, int(.03 * SR)); music[cutn:] = 0
 
 # ---------------- sound effects
-put(sfx, whoosh(.9, 200, 2500), .15, .5)                       # ball flying in
+# --- the hook: ball screams in, snap, dead stop, two clock ticks, then the music kicks in
+tf0 = E['snaps'][0]
+rz = tt(tf0); riser = np.sin(2 * np.pi * np.cumsum(180 + 900 * (rz / tf0) ** 2) / SR) * (rz / tf0) ** 1.5 * .5
+put(sfx, riser * env(len(rz), .01, .01), 0, .7)
+wb = whoosh(tf0 + .1, 200, 3500); put(sfx, wb, 0, 1.0)
+put(sfx, freeze_fx(), tf0, .5)
+for i in range(2): put(dry, tick(i == 0), tf0 + .22 + i * .17, .55)
+put(sfx, whoosh(.45, 400, 4000), E['flick'] - .5, .45)            # camera whip as he steps out
+put(dry, pop(), E['flick'], .6)
+put(dry, marimba(note(84), .6) + marimba(note(91), .6) * .6, E['wink'], .5)
 for i, ts in enumerate(E['snaps']):
     put(dry, snap(), ts - .01, .9); put(sfx, freeze_fx(), ts, .55 if i in (0, 1, 5) else .4)
     put(sfx, whoosh(.3, 2000, 8000)[::-1], ts - .3, .25)
