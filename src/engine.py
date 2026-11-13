@@ -138,7 +138,18 @@ class Scene:
     def _shade(s, col, n, dist, unlit):
         if not unlit:
             k = s.amb + s.dif * max(0.0, -float(n @ s.L)) + 0.05 * n[1]
+            c0 = col
             col = (col[0] * k, col[1] * k, col[2] * k)
+            ac = getattr(s, 'ambcol', None)
+            if ac: col = (col[0] * ac[0], col[1] * ac[1], col[2] * ac[2])
+            Ls = getattr(s, 'lights', None); p = getattr(s, '_p', None)
+            if Ls and p is not None:      # point lights (used by short 2)
+                px_, py_, pz_ = float(p[0]), float(p[1]), float(p[2]); nx_, ny_, nz_ = float(n[0]), float(n[1]), float(n[2])
+                for lp, lc, rad, inten in Ls:
+                    dx = lp[0] - px_; dy = lp[1] - py_; dz = lp[2] - pz_; dl = math.sqrt(dx * dx + dy * dy + dz * dz)
+                    if dl >= rad: continue
+                    f = (1 - dl / rad) ** 2 * inten * (0.35 + 0.65 * max(0.0, (nx_ * dx + ny_ * dy + nz_ * dz) / (dl + 1e-6)))
+                    col = (col[0] + c0[0] * lc[0] * f, col[1] + c0[1] * lc[1] * f, col[2] + c0[2] * lc[2] * f)
         if s.fog:
             fc, d0, d1, fm = s.fog; t = clamp((dist - d0) / (d1 - d0)) * fm
             col = mix(col, fc, t)
@@ -187,15 +198,17 @@ class Scene:
                         n = -n
                     c = cam.clip(list(cam.to_cam(pts)))
                     if len(c) < 3: continue
-                    fd = np.linalg.norm(pts.mean(0) - cam.pos) if o['layer'] == 0 else dist
+                    s._p = pts.mean(0)
+                    fd = np.linalg.norm(s._p - cam.pos) if o['layer'] == 0 else dist
                     rgb = s._shade(col, n, fd, o['unlit'])
                     dr.polygon(cam.proj(c), fill=rgb + (a,) if a < 255 else rgb)
                 for pts, col, nw in o.get('decals', ()):
                     if nw @ (cam.pos - pts[0]) <= 0.02: continue
                     c = cam.clip(list(cam.to_cam(pts)))
                     if len(c) < 3: continue
-                    rgb = s._shade(col[:3], nw, dist, False)
-                    dr.polygon(cam.proj(c), fill=rgb + ((col[3],) if len(col) > 3 else ()))
+                    un = len(col) > 3 and col[3] == -1      # -1 = emissive decal
+                    rgb = s._shade(col[:3], nw, dist, un)
+                    dr.polygon(cam.proj(c), fill=rgb + ((col[3],) if len(col) > 3 and not un else ()))
             elif o['k'] == 'sprite':
                 c = cam.to_cam(o['c'])
                 if c[2] < cam.near: continue
@@ -214,7 +227,7 @@ class Scene:
                 if o['bg']:
                     bb = dr.textbbox((x, y), o['txt'], font=f, anchor='mm'); p = cam.f * o['pad'] / c[2]
                     dr.rounded_rectangle([bb[0] - p, bb[1] - p, bb[2] + p, bb[3] + p], radius=p, fill=o['bg'])
-                dr.text((x, y), o['txt'], font=f, fill=o['col'], anchor='mm', stroke_width=sw, stroke_fill=o['stroke'])
+                dr.text((x, y), o['txt'], font=f, fill=tuple(int(v) for v in o['col']), anchor='mm', stroke_width=sw, stroke_fill=tuple(int(v) for v in o['stroke']) if o['stroke'] else None)
         if not shadows_done: s._shadows(img, cam)
         return img.reduce(SS)
     def _shadows(s, img, cam):
