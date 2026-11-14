@@ -48,3 +48,11 @@ python short4/film.py render 0 1 /tmp/f4
 ffmpeg -framerate 24 -i /tmp/f4/%05d.jpg -i build/s4/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/only-one-country-4-hemispheres.mp4
 ```
 Map outlines: Natural Earth (public domain), `short4/data/`.
+
+## Short 5 - How A Bruise Changes Colour (realistic 3D-style explainer)
+```
+python short5/vo.py && python short5/audio.py
+python short5/film.py render 0 1 /tmp/f5
+ffmpeg -framerate 24 -i /tmp/f5/%05d.jpg -i build/s5/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/how-a-bruise-changes-colour.mp4
+```
+Shot images are AI-generated (`short5/img/`); the purple / green / yellow stages are derived from them in `short5/film.py`.

@@ -1,6 +1,11 @@
 # Short 5 - "How A Bruise Changes Colour 😯"
 
-Status: awaiting approval. About 80 words, 28-32 seconds. One calm male narrator.
+Status: approved (simpler rewrite below), produced. 23 seconds. Narrator voice-08.
+
+## Final approved script
+You know when you walk into a table and smack your shin? The skin doesn't break. But under it, tiny blood vessels pop. The blood has nowhere to go, so it just sits there. That's the dark mark you see. After a day or two, it turns blue and purple. Then your body sends in cells to clean it up. They eat the old blood, and it goes green, then yellow. Two weeks later, it's gone. Like it never happened.
+
+## First draft (rejected as too complicated)
 
 | # | Narration | Picture |
 |---|-----------|---------|
