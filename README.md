@@ -40,3 +40,11 @@ python short3/audio.py     # music + sfx mix -> build/s3/mix.wav
 python short3/film.py render 0 1 /tmp/f3
 ffmpeg -framerate 24 -i /tmp/f3/%05d.jpg -i build/s3/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/he-said-i-stole-his-wallet.mp4
 ```
+
+## Short 4 - Only One Country Is In All 4 Hemispheres (map animation)
+```
+python short4/vo.py && python short4/audio.py
+python short4/film.py render 0 1 /tmp/f4
+ffmpeg -framerate 24 -i /tmp/f4/%05d.jpg -i build/s4/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/only-one-country-4-hemispheres.mp4
+```
+Map outlines: Natural Earth (public domain), `short4/data/`.

@@ -1,6 +1,6 @@
 # Script 4 - "Only One Country Is In All 4 Hemispheres"
 
-Status: awaiting approval. About 125 words, 40-45 seconds, one narrator, map animation.
+Status: approved as written, produced. 38 seconds, one narrator, map animation.
 
 | # | Line | On screen |
 |---|---|---|
