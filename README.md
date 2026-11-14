@@ -32,3 +32,11 @@ python short2/audio.py
 python short2/film.py render 0 1 /tmp/f2
 ffmpeg -framerate 24 -i /tmp/f2/%05d.jpg -i build/s2/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/nobody-turns-off-the-lights.mp4
 ```
+
+## Short 3 - He Said I Stole His Wallet
+```
+python short3/vo.py        # dialogue -> build/s3/vo.wav + timeline.json
+python short3/audio.py     # music + sfx mix -> build/s3/mix.wav
+python short3/film.py render 0 1 /tmp/f3
+ffmpeg -framerate 24 -i /tmp/f3/%05d.jpg -i build/s3/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/he-said-i-stole-his-wallet.mp4
+```
