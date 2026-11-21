@@ -1,11 +1,11 @@
-"""Short 6: 'In This Town, If You Forget A Name...' - shots, captions, renderer."""
+"""Short 6 (REMAKE): 'In This Town, If You Forget A Name...' - shots, robust captions, renderer."""
 import json, math, random, sys, os
 sys.path.insert(0, 'src'); sys.path.insert(0, 'short2')
 import numpy as np
 from PIL import Image, ImageDraw
 from world import *
 
-TL = json.load(open("build/s6/timeline.json")); P = TL["lines"]; FPS = 24
+TL = json.load(open("build/s6b/timeline.json")); P = TL["lines"]; FPS = 24
 def ps(i): return P[i]["t0"]
 def pe(i): return P[i]["t1"]
 LEAD = 0.06
@@ -36,9 +36,9 @@ def red(sc, pos, yaw=0, pose=None, face=None, **o):
 def haze(sc, c, k, t=0):
     if k <= 0: return
     hp = xf(c['head'], [(0, 1.0, 0)])[0]
-    w = 1.5 + .12 * math.sin(t * 9)
-    sc.sprite(hp, w, w, (255, 255, 255), alpha=int(120 * k), bias=-2)
-    sc.sprite(hp, w * .7, w * .7, (228, 228, 238), alpha=int(95 * k), bias=-2.1)
+    w = 1.5 + .1 * math.sin(t * 8)
+    sc.sprite(hp, w, w, (255, 255, 255), alpha=int(115 * k), bias=-2)
+    sc.sprite(hp, w * .7, w * .7, (228, 228, 238), alpha=int(90 * k), bias=-2.1)
 def dex(sc, pos, yaw=0, pose=None, face=None, blur=0.0, t=0, **o):
     L = dict(DEXL)
     if blur > 0:
@@ -54,11 +54,11 @@ def gary(sc, pos, yaw=0, pose=None, face=None, **o):
 def chief(sc, pos, yaw=0, pose=None, face=None, **o):
     L = dict(CHIEFL); L['face'] = face or {}; L.update(o)
     c = character(sc, pos, yaw, pose, L); h = c['head']
-    k = (190, 40, 40)                                                              # red fire helmet
+    k = (190, 40, 40)
     sc.box(h @ T(0, 1.44, 0), (1.4, .34, 1.4), k, shadow=False, bias=-.2)
     sc.box(h @ T(0, 1.66, 0), (1.72, .1, 1.72), k, shadow=False, bias=-.4)
     sc.box(h @ T(0, 1.72, 0), (1.1, .22, 1.1), (255, 214, 60), shadow=False, bias=-.5)
-    sc.box(c['torso'] @ T(0, 1.5, .52), (.4, .9, .06), (255, 255, 255), shadow=False, bias=-.2)  # badge
+    sc.box(c['torso'] @ T(0, 1.5, .52), (.4, .9, .06), (255, 255, 255), shadow=False, bias=-.2)
     return c
 def baker(sc, pos, yaw=0, pose=None, t=0, **o):
     L = dict(shirt=(220, 190, 140), pants=(90, 80, 70), hair=(90, 80, 70), skin=(236, 184, 140), scale=1.05, head=1.05, style='bald', sleeves='short')
@@ -97,7 +97,7 @@ def bakery(sc, t):
     sc.box(T(0, 3.4, -4), (11, 6.8, .5), (230, 190, 130), decals=[('+z', [(rect(-3.4, .4, 6.8, 2.2), (90, 60, 40)), (rect(-3.4, .4, 6.8, .3), (250, 220, 160))])])
     sc.box(T(0, 5.2, -4.2), (11.4, 1.0, .9), (120, 70, 50))
     sc.text((0, 5.2, -3.7), "BAKER", 1.1, (255, 240, 200), stroke=(60, 30, 20), bias=-1)
-    sc.box(T(-3.2, 1.1, -1.2), (2.6, 2.2, 1.2), (200, 160, 110))                       # counter
+    sc.box(T(-3.2, 1.1, -1.2), (2.6, 2.2, 1.2), (200, 160, 110))
     sc.box(T(-3.2, 2.35, -1.2), (2.6, .12, 1.2), (240, 210, 160), shadow=False)
     for i in range(4):
         sc.box(T(-4.4 + i * .7, 2.55, -1.0), (.55, .4, .5), (235, 170, 90), shadow=False, bias=-.4)
@@ -107,7 +107,7 @@ def school(sc, t, broke=0.0):
     sc.box(T(0, 4, -6), (13, 8, 8), (235, 220, 200), decals=[('+z', [(rect(-4, .8, 8, 2.4), (70, 110, 190)), (rect(-4, .8, 8, .35), (255, 255, 255))])])
     sc.box(T(0, 6.2, -6.2), (13.4, 1.0, 8.4), (120, 70, 50))
     sc.text((0, 6.2, -5.7), "SCHOOL", 1.2, (255, 255, 255), stroke=(60, 40, 30), bias=-1)
-    sc.box(T(0, 9.0, -6.2), (13.4, .8, 8.4), (150, 90, 70))                            # roof slab
+    sc.box(T(0, 9.0, -6.2), (13.4, .8, 8.4), (150, 90, 70))
     if broke > 0:
         k = ease_out(broke)
         sc.box(T(lerp(0, 3.4, k), lerp(9.0, -.5, k), lerp(-6.2, -2.2, k)) @ RZ(k * 24), (13.4, .8, 8.4), (150, 90, 70))
@@ -130,7 +130,7 @@ BANG = "fonts/Bangers-Regular.ttf"; LG = "fonts/LuckiestGuy-Regular.ttf"
 def bigtext(txt, pt, k, size=150, col=(255, 235, 70), rot=0, st=(20, 16, 50)):
     def f(dr):
         if k <= 0: return
-        s = int(size * (.55 + .45 * ease_out(min(1, k * 5))) * (1 + .05 * math.sin(k * 30)))
+        s = int(size * (.55 + .45 * ease_out(min(1, k * 5))) * (1 + .04 * math.sin(k * 22)))
         f_ = font(s, BANG)
         if rot:
             tmp = Image.new('RGBA', (int(s * len(txt) * .7) + 80, int(s * 1.6)), (0, 0, 0, 0)); d2 = ImageDraw.Draw(tmp)
@@ -138,80 +138,72 @@ def bigtext(txt, pt, k, size=150, col=(255, 235, 70), rot=0, st=(20, 16, 50)):
             tmp = tmp.rotate(rot, expand=True, resample=Image.BICUBIC); dr._image.paste(tmp, (int(pt[0] - tmp.width / 2), int(pt[1] - tmp.height / 2)), tmp)
         else: dr.text(pt, txt, font=f_, fill=col + (255,), anchor='mm', stroke_width=int(s * .09), stroke_fill=st + (255,))
     return f
-def rays(k, col=(255, 255, 255), c=(W / 2, H * .42)):
-    def f(dr):
-        for i in range(14):
-            a = i * 2 * math.pi / 14 + k * .6; b = a + .11
-            dr.polygon([c, (c[0] + math.cos(a) * 2400, c[1] + math.sin(a) * 2400), (c[0] + math.cos(b) * 2400, c[1] + math.sin(b) * 2400)], fill=col + (34,))
-    return f
 def PP(**k):
-    d = dict(sat=1.34, bloom=.5, vig=.22, con=1.08, tint=(1.03, 1.0, .97)); d.update(k); return d
+    d = dict(sat=1.26, bloom=.42, vig=.18, con=1.06, tint=(1.03, 1.0, .97)); d.update(k); return d
 
 # ---------------------------------------------------------------- shots
-PULL = 1.42
+PULL = 1.55
 class Cam2(Cam):
     def __init__(s, pos, target, fov=40, roll=0, pull=None):
         pos = V(*pos); target = V(*target); Cam.__init__(s, target + (pos - target) * (pull or PULL), target, fov, roll)
 
 def A0(lt, d, t):       # 0-1: the rule
-    k = smooth((lt - .2) / .6); sc = day(); town(sc, t)
+    sc = day(); town(sc, t)
     for i, z in enumerate((-6, -14, -22)):
         p = (lerp(-4.5, -2.5, ease_out(clamp(lt / 1.2))), 0, z + 2)
         folk(sc, i + 40, p, 180, walk(t + i * .4, 1.8, 26), lant=None, kid=(i % 3 == 0))
-    c = red(sc, (-1.6, 0, 2.5), 12, walk(t, 1.6, 26), dict(eyes='open', mouth='smile', brows='up'))
-    cam = Cam2(V(.2, 3.4, lerp(11, 7.4, ease_out(lt / d))), V(-1.4, 2.6, 1.5), 46)
-    ov = [bigtext("IF YOU FORGET A NAME...", (W / 2, H * .17), lt - .1, 96, (255, 255, 255), 0, (20, 30, 90)),
-          bigtext("THEIR FACE GOES BLURRY.", (W / 2, H * .27), lt - .7, 84, (255, 235, 70), 0, (20, 30, 90))]
-    return sc, cam, PP(overlay=ov, flash=.3 * pulse(lt, .1, .1))
+    red(sc, (-1.6, 0, 2.5), 12, walk(t, 1.6, 26), dict(eyes='open', mouth='smile', brows='up'))
+    cam = Cam2(V(.2, 3.4, lerp(11, 7.2, ease_out(lt / d))), V(-1.4, 2.7, 1.5), 46)
+    ov = [bigtext("IF YOU FORGET A NAME...", (W / 2, H * .16), lt - .1, 96, (255, 255, 255), 0, (20, 30, 90)),
+          bigtext("THEIR FACE GOES BLURRY.", (W / 2, H * .25), lt - .7, 84, (255, 235, 70), 0, (20, 30, 90))]
+    return sc, cam, PP(overlay=ov, flash=.2 * pulse(lt, .1, .1))
 def A1(lt, d, t):       # 2-3: smudge gag
     sc = day(); bakery(sc, t)
     b = math.sin(t * 7)
     baker(sc, (-2.2, 0, -2.2), 0, dict(y=.04 * b, head=(math.sin(t * 3) * 6, 0)), t=t)
     kid(sc, (-4.0, 0, -1.0), 20, dict(al=(60 + 20 * b, 10), ar=(30, 30), head=(14, 4), y=.03 * b), dict(eyes='open', mouth='smile', brows='up'))
     k = ease_out(clamp((lt - .35) / .5))
-    cam = Cam2(V(-1.2, 3.0, lerp(7.5, 6.2, k)), V(-2.6, 2.7, -2.0), 44)
-    ov = [bigtext("SMUDGE", (W / 2, H * .16), lt - .5, 210, (255, 140, 60), 6, (40, 20, 10))]
+    cam = Cam2(V(-1.2, 3.0, lerp(7.5, 6.0, k)), V(-2.6, 2.8, -2.0), 44)
+    ov = [bigtext("SMUDGE", (W / 2, H * .15), lt - .5, 210, (255, 140, 60), 6, (40, 20, 10))]
     return sc, cam, PP(overlay=ov)
 def B(lt, d, t):        # 4-7: I remember everyone
     sc = day(); school(sc, t, 0)
     tk = talk(t, 'R')
-    c = red(sc, (-1.4, 0, 2.2), 20, dict(al=(70 + (20 if tk else 0), 10), ar=(30, 30), head=(8, 4), y=.03 * math.sin(t * 8)), F('R', t, eyes='smile', mouth='grin', brows='up'))
+    red(sc, (-1.4, 0, 2.2), 20, dict(al=(70 + (20 if tk else 0), 10), ar=(30, 30), head=(8, 4), y=.03 * math.sin(t * 8)), F('R', t, eyes='smile', mouth='grin', brows='up'))
     for i, (x, z) in enumerate(((3.2, 3.0), (4.6, 1.2), (3.0, -1.4), (5.0, -3.2))):
         kk = kid(sc, (x, 0, z), yaw_to((x, 0, z), (-1.4, 0, 2.2)), idle(t, i), dict(eyes='open', mouth='smile'))
         nametag(sc, kk, ["SAM", "LISA", "TOM", "AMY"][i], .55)
-    kd = dex(sc, (1.6, 0, 2.6), -40, idle(t, 2), {}, blur=1.0, t=t)
-    cam = Cam2(V(-.4, 3.2, lerp(7.6, 6.8, lt / d)), V(-.9, 2.9, 1.6), 42)
+    dex(sc, (1.6, 0, 2.6), -40, idle(t, 2), {}, blur=1.0, t=t)
+    cam = Cam2(V(-.4, 3.2, lerp(7.8, 6.8, lt / d)), V(-.9, 3.0, 1.6), 42)
     return sc, cam, PP()
 def C(lt, d, t):        # 8-9: I saw a blur
     sc = day(); school(sc, t, 0)
     b = math.sin(t * 8)
     dex(sc, (1.5, 0, 2.4), -35, dict(al=(40 + 30 * b, 10), ar=(40 + 30 * b, 10), head=(0, 4), y=.05 * abs(math.sin(t * 6))), {}, blur=1.0, t=t)
-    c = red(sc, (-1.5, 0, 2.2), 20, dict(al=(70, 10), ar=(30, 30), head=(-14, 6), y=.03 * b), dict(eyes='wide', mouth='o', brows='up', look=(1, 0)))
+    red(sc, (-1.5, 0, 2.2), 20, dict(al=(70, 10), ar=(30, 30), head=(-14, 6), y=.03 * b), dict(eyes='wide', mouth='o', brows='up', look=(1, 0)))
     kk = ease_out(clamp(lt / .8))
-    cam = Cam2(lerp(V(-.6, 3.3, 7.4), V(1.9, 3.6, 5.6), kk), lerp(V(-1.2, 2.9, 1.8), V(1.5, 3.0, 2.4), kk), 42)
-    ov = [bigtext("...BUDDY?", (W / 2, H * .17), lt - .4, 130, (255, 255, 255), 0, (20, 30, 90))] if lt < d * .6 else []
+    cam = Cam2(lerp(V(-.6, 3.3, 7.4), V(1.9, 3.6, 5.6), kk), lerp(V(-1.2, 3.0, 1.8), V(1.5, 3.1, 2.4), kk), 42)
+    ov = [bigtext("...BUDDY?", (W / 2, H * .16), lt - .4, 130, (255, 255, 255), 0, (20, 30, 90))] if lt < d * .6 else []
     return sc, cam, PP(overlay=ov)
 D_CRASH = .45
-def D(lt, d, t):        # 10-11: roof caves in, fire chief
+def DD(lt, d, t):       # 10-13: roof caves in, fire chief
     crash = lt >= D_CRASH; sh = ease_out((lt - D_CRASH) / .35)
     sc = day(); school(sc, t, 1.0 if crash else 0)
     if crash:
         dust(sc, (0, 2, -4), t - D_CRASH, 8, 4.2)
-        k = clamp((lt - D_CRASH) / .8)
         for i in range(10):
             u = ((t * .9 + i * .31) % 1)
             sc.sprite((lerp(-4, 4, (i / 9)) + math.sin(u * 8) * .6, u * 5.5, lerp(-4, 1, (i / 9)) + math.cos(u * 7) * .6), .8 + u * .6, .8 + u * .6, (190, 180, 165), alpha=int(150 * (1 - u)), bias=-2)
-    crowd_k = clamp((lt - D_CRASH) / .6)
     for i, (x, z) in enumerate(((-4.5, 4.5), (4.5, 4.5), (-5.0, 2.5), (5.0, 2.5))):
         folk(sc, i + 50, (x, 0, z), yaw_to((x, 0, z), (0, 0, 0)), dict(y=.05 * abs(math.sin(t * 10 + i)), al=(20, 40), ar=(20, 40), lean=-10), face=dict(eyes='wide', mouth='open', brows='up'), lant=None, kid=(i % 2 == 0))
     run_in = ease_out(clamp((lt - D_CRASH - .3) / .7))
-    cp = (lerp(8.5, 3.2, run_in), 0, lerp(4.0, 1.8, run_in))
-    chief(sc, cp, yaw_to(cp, (-1.2, 0, 2.0)), run(t, 2.6, 40) if run_in < 1 else dict(al=(30, -20), ar=(30, -20), lean=6, head=(0, -6)), F('F', t, eyes='open', mouth='flat', brows='flat'))
-    cam = Cam2(V(.6, 3.2, 8.4) + shake(t, .28 * pulse(lt, D_CRASH, .5)), V(0, 3.0, -1.0), 50)
-    ov = [bigtext("CRASH!", (W / 2, H * .14), lt - D_CRASH, 300, (255, 235, 70), -6, (40, 20, 10))] if crash else []
-    return sc, cam, PP(overlay=ov, flash=.7 * pulse(lt, D_CRASH, .12))
+    cp = (lerp(8.5, 3.4, run_in), 0, lerp(4.0, 2.0, run_in))
+    chief(sc, cp, yaw_to(cp, (-1.2, 0, 2.0)), run(t, 2.6, 40) if run_in < 1 else dict(al=(30, -20), ar=(30, -20), lean=6, head=(0, -6)), dict(eyes='open', mouth='flat', brows='flat'))
+    cam = Cam2(V(.6, 3.2, 8.6) + shake(t, .18 * pulse(lt, D_CRASH, .5)), V(0, 3.0, -1.0), 50)
+    ov = [bigtext("CRASH!", (W / 2, H * .13), lt - D_CRASH, 300, (255, 235, 70), -6, (40, 20, 10))] if crash else []
+    return sc, cam, PP(overlay=ov, flash=.45 * pulse(lt, D_CRASH, .1))
 E_BASE = .5
-def EE(lt, d, t):       # 12-14: shouts into the rubble
+def EE(lt, d, t):       # 14: shouts into the rubble
     sc = day(); rubble(sc, t)
     sh1 = lt >= E_BASE; sh2 = lt >= E_BASE + .85; sh3 = lt >= E_BASE + 1.7; deflated = lt >= E_BASE + 2.5
     b = math.sin(t * 9)
@@ -219,37 +211,37 @@ def EE(lt, d, t):       # 12-14: shouts into the rubble
     climb = ease_out(clamp(lt / E_BASE))
     pose = dict(ll=lerp(0, -40, climb), lr=lerp(0, 40, climb), al=(lerp(40, 110, climb), 10), ar=(lerp(40, 60, climb), 10), lean=lerp(0, 14, climb), head=(0, lerp(0, 26, climb)), y=.05 * b)
     if deflated: pose = dict(al=(30, 10), ar=(30, 10), lean=-8, head=(0, -10), y=-.03)
-    c = red(sc, (-1.0, 0, 2.6), 18, pose, dict(eyes='wide' if not deflated else 'tired', mouth='o' if shout else ('frown' if deflated else 'flat'), brows='up' if not deflated else 'sad', look=(0, .3)))
+    red(sc, (-1.0, 0, 2.6), 18, pose, dict(eyes='wide' if not deflated else 'tired', mouth='o' if shout else ('frown' if deflated else 'flat'), brows='up' if not deflated else 'sad', look=(0, .3)))
     gary(sc, (3.6, 0, 3.4), -120, dict(y=.12 * abs(math.sin(t * 11)), al=(20, 40), ar=(20, 40), lean=-6), dict(eyes='happy', mouth='grin'))
-    cam = Cam2(V(-.8, 3.0, lerp(7.6, 6.4, lt / d)) + shake(t, .08 * shout), V(-1.0, 2.8, 2.2), 44)
-    ov = [bigtext("BUDDY!", (W / 2, H * .15), lt - E_BASE, 240, (255, 255, 255), 4, (20, 30, 90))] if sh1 and lt < E_BASE + .8 else \
-         [bigtext("DUDE!", (W / 2, H * .15), lt - E_BASE - .85, 240, (255, 255, 255), -4, (20, 30, 90))] if sh2 and lt < E_BASE + 1.65 else \
-         [bigtext("BEST FRIEND!", (W / 2, H * .15), lt - E_BASE - 1.7, 210, (255, 255, 255), 2, (20, 30, 90))] if sh3 and lt < E_BASE + 2.4 else []
+    cam = Cam2(V(-.8, 3.0, lerp(7.6, 6.2, lt / d)) + shake(t, .05 * shout), V(-1.0, 2.9, 2.2), 44)
+    ov = [bigtext("BUDDY!", (W / 2, H * .14), lt - E_BASE, 240, (255, 255, 255), 4, (20, 30, 90))] if sh1 and lt < E_BASE + .8 else \
+         [bigtext("DUDE!", (W / 2, H * .14), lt - E_BASE - .85, 240, (255, 255, 255), -4, (20, 30, 90))] if sh2 and lt < E_BASE + 1.65 else \
+         [bigtext("BEST FRIEND!", (W / 2, H * .14), lt - E_BASE - 1.7, 210, (255, 255, 255), 2, (20, 30, 90))] if sh3 and lt < E_BASE + 2.4 else []
     return sc, cam, PP(overlay=ov)
-def FF(lt, d, t):       # 15-17: gary's line, red determined, flashback swirl
+def FF(lt, d, t):       # 15-17: gary's line, red determined
     sc = day(); rubble(sc, t)
     if lt < d * .45:
-        g = gary(sc, (1.2, 0, 2.8), 10, dict(y=.14 * abs(math.sin(t * 12)), al=(20, 50), ar=(20, 50), lean=-8, head=(0, 8)), F('G', t, eyes='happy', mouth='grin'))
-        cam = Cam2(V(.4, 3.0, 6.4), V(1.2, 2.9, 2.8), 40)
-        ov = [bigtext("HA!", (W * .7, H * .2), lt - .1, 150, (255, 235, 70), -8)]
+        gary(sc, (1.2, 0, 2.8), 10, dict(y=.14 * abs(math.sin(t * 12)), al=(20, 50), ar=(20, 50), lean=-8, head=(0, 8)), F('G', t, eyes='happy', mouth='grin'))
+        cam = Cam2(V(.4, 3.0, 6.6), V(1.2, 3.0, 2.8), 40)
+        ov = [bigtext("HA!", (W * .7, H * .18), lt - .1, 150, (255, 235, 70), -8)]
     else:
         k = smooth((lt - d * .45) / .5)
         red(sc, (-1.2, 0, 2.8), 18, dict(al=(80, 10), ar=(40, 40), lean=6, head=(0, 10), y=.03 * math.sin(t * 9)), dict(eyes='open', mouth='flat', brows='up'))
-        cam = Cam2(V(-.6, 3.0, lerp(6.8, 6.2, k)), V(-1.2, 2.8, 2.8), 42)
-        ov = [rays(t * 2.2, (255, 240, 180), (W / 2, H * .42))]
+        cam = Cam2(V(-.6, 3.0, lerp(7.0, 6.2, k)), V(-1.2, 2.9, 2.8), 42)
+        ov = []
     return sc, cam, PP(overlay=ov)
-def G(lt, d, t):        # 18: flashback, first day
+def GG(lt, d, t):       # 18: flashback, first day
     sc = day(warm=1)
     school(sc, t, 0)
     b = math.sin(t * 7)
-    rd_ = red(sc, (-1.6, 0, 3.0), 25, idle(t, 1), dict(eyes='open', mouth='smile', brows='up'))
+    red(sc, (-1.6, 0, 3.0), 25, idle(t, 1), dict(eyes='open', mouth='smile', brows='up'))
     dx = dex(sc, (1.2, 0, 3.2), -25, dict(al=(60 + 25 * b, 10), ar=(30, 30), head=(0, 4), y=.04 * b), dict(eyes='smile', mouth='grin'), blur=0.0, t=t)
     hp = tuple(dx['hand_r'])
     sc.box(T(*hp), (.8, .4, .3), (235, 180, 90), shadow=False, bias=-1)
     sc.box(T(hp[0], hp[1] + .42, hp[2]), (.75, .12, .26), (210, 150, 70), shadow=False, bias=-1.2)
     glow(sc, (0, 3.5, 3.0), 6, (255, 220, 150), .35)
-    cam = Cam2(V(-.2, 3.1, lerp(7.2, 6.4, ease_out(lt / d))), V(0, 2.9, 3.0), 44)
-    return sc, cam, PP(tint=(1.06, .98, .92), bloom=.4)
+    cam = Cam2(V(-.2, 3.1, lerp(7.2, 6.2, ease_out(lt / d))), V(0, 3.0, 3.0), 44)
+    return sc, cam, PP(tint=(1.05, .98, .92), bloom=.35)
 H_SNAP = .5
 def HH(lt, d, t):       # 19-22: Dex! face snaps clear
     snap = lt >= H_SNAP; bl = 1 - ease_out(clamp((lt - H_SNAP) / .4))
@@ -257,72 +249,68 @@ def HH(lt, d, t):       # 19-22: Dex! face snaps clear
     if snap: dust(sc, (1.5, 1.5, 2.0), t - H_SNAP, 7, 3.5, (220, 210, 195))
     b = math.sin(t * 9)
     shout = pulse(lt, H_SNAP, .4)
-    c = red(sc, (-1.2, 0, 2.6), 16, dict(al=(lerp(70, 130, shout), 10), ar=(30, 30), lean=lerp(0, 10, shout), head=(0, lerp(4, 22, shout)), y=.04 * b), dict(eyes='wide', mouth='o' if shout else 'grin', brows='up', look=(1, .2)))
+    red(sc, (-1.2, 0, 2.6), 16, dict(al=(lerp(70, 130, shout), 10), ar=(30, 30), lean=lerp(0, 10, shout), head=(0, lerp(4, 22, shout)), y=.04 * b), dict(eyes='wide', mouth='o' if shout else 'grin', brows='up', look=(1, .2)))
     dex(sc, (1.5, 0, 2.4), -30, dict(y=.05 * abs(math.sin(t * 6)), al=(30, 30), ar=(30, 30), head=(0, 6)), dict(eyes='grin', mouth='grin', brows='up') if snap else {}, blur=bl, t=t)
-    cam = Cam2(V(.2, 3.0, lerp(7.4, 6.0, clamp(lt / d))) + shake(t, .1 * shout), V(.1, 2.8, 2.3), 44)
-    ov = [bigtext("DEX!", (W / 2, H * .13), lt - H_SNAP, 330, (255, 255, 255), 0, (20, 30, 90))] if shout else \
-         [bigtext("CLEAR!", (W * .68, H * .2), lt - H_SNAP - .15, 200, (90, 255, 140), -6, (20, 60, 30)), rays(t, (140, 255, 170), (W * .68, H * .2))] if snap else []
-    return sc, cam, PP(overlay=ov, flash=.8 * pulse(lt, H_SNAP, .1))
+    cam = Cam2(V(.2, 3.0, lerp(7.4, 5.9, clamp(lt / d))) + shake(t, .06 * shout), V(.1, 2.9, 2.3), 44)
+    ov = [bigtext("DEX!", (W / 2, H * .12), lt - H_SNAP, 330, (255, 255, 255), 0, (20, 30, 90))] if shout else \
+         [bigtext("CLEAR!", (W * .68, H * .19), lt - H_SNAP - .15, 200, (90, 255, 140), -6, (20, 60, 30))] if snap else []
+    return sc, cam, PP(overlay=ov, flash=.5 * pulse(lt, H_SNAP, .1))
 def II(lt, d, t):       # 23-25: chase + punchline
     sc = day(warm=1); town(sc, t, walkers=6)
     hid = lt > d * .35
     b = math.sin(t * 9)
-    dx = dex(sc, (lerp(1.5, 3.4, ease_out(clamp((lt - d * .35) / .6))), 0, 2.2), -40 if not hid else -75, dict(al=(30, 10), ar=(30, 10), head=(-20 if hid else 0, 4), y=.04 * b), dict(eyes='happy', mouth='grin', brows='up'), blur=0.0, t=t)
-    runk = run(t, 2.4, 40)
-    c = red(sc, (lerp(-1.4, -2.6, ease_out(clamp(lt / .6))), 0, lerp(2.4, 2.2, lt / d)), 12, runk, dict(eyes='happy', mouth='grin', brows='up'))
+    dex(sc, (lerp(1.5, 3.4, ease_out(clamp((lt - d * .35) / .6))), 0, 2.2), -40 if not hid else -75, dict(al=(30, 10), ar=(30, 10), head=(-20 if hid else 0, 4), y=.04 * b), dict(eyes='happy', mouth='grin', brows='up'), blur=0.0, t=t)
+    red(sc, (lerp(-1.4, -2.6, ease_out(clamp(lt / .6))), 0, lerp(2.4, 2.2, lt / d)), 12, run(t, 2.4, 40), dict(eyes='happy', mouth='grin', brows='up'))
     for i, z in enumerate((-6, -14)):
         folk(sc, i + 60, ((i - .5) * 9, 0, z), 0, dict(y=.1 * abs(math.sin(t * 8 + i)), al=(20, 50), ar=(20, 50)), face=dict(eyes='happy', mouth='grin'), lant=None, kid=(i % 2 == 0))
-    cam = Cam2(V(.0, 3.2, lerp(8.2, 6.8, lt / d)), V(.2, 2.8, 2.2), 48)
+    cam = Cam2(V(.0, 3.2, lerp(8.4, 6.6, lt / d)), V(.2, 2.9, 2.2), 48)
     k = clamp((lt - d * .75) / .25)
-    ov = [bigtext("HIS FACE IS FINE.", (W / 2, H * .2), k, 96, (255, 255, 255), 0, (20, 30, 90)),
-          bigtext("MINE ISN'T.", (W / 2, H * .3), max(0, k - .15), 110, (255, 235, 70), 0, (20, 30, 90))]
-    return sc, cam, PP(overlay=ov, tint=(1.05, .97, .92), bloom=.45)
+    ov = [bigtext("HIS FACE IS FINE.", (W / 2, H * .18), k, 96, (255, 255, 255), 0, (20, 30, 90)),
+          bigtext("MINE ISN'T.", (W / 2, H * .27), max(0, k - .15), 110, (255, 235, 70), 0, (20, 30, 90))]
+    return sc, cam, PP(overlay=ov, tint=(1.05, .97, .92), bloom=.4)
 
-SHOTS = [(0, A0), (cut(2), A1), (cut(4), B), (cut(8), C), (cut(10), D), (cut(12), EE), (cut(15), FF), (cut(17), G), (cut(19), HH), (cut(23), II), (END, None)]
+SHOTS = [(0, A0), (cut(2), A1), (cut(4), B), (cut(8), C), (cut(10), DD), (cut(12), EE), (cut(15), FF), (cut(17), GG), (cut(19), HH), (cut(23), II), (END, None)]
 
 def events():
     ix = {fn.__name__: i for i, (t0, fn) in enumerate(SHOTS) if fn}; st = {n: SHOTS[i][0] for n, i in ix.items()}
-    return dict(st=st, cuts=[t for t, f in SHOTS], end=END, dur=DUR, rule=st['A0'], smudge=st['A1'] + .5, roof=st['D'] + D_CRASH,
+    return dict(st=st, cuts=[t for t, f in SHOTS], end=END, dur=DUR, rule=st['A0'], smudge=st['A1'] + .5, roof=st['DD'] + D_CRASH,
                 shout1=st['EE'] + E_BASE, shout2=st['EE'] + E_BASE + .85, shout3=st['EE'] + E_BASE + 1.7, laugh=st['FF'] + .2,
-                flashback=st['G'], dexclear=st['HH'] + H_SNAP, chase=st['II'], punch=st['II'] + 2.0)
+                flashback=st['GG'], dexclear=st['HH'] + H_SNAP, chase=st['II'], punch=st['II'] + 2.0)
 
-# ================================================================ captions
-SPK = dict(R=((255, 255, 255), (255, 226, 50)), D=((150, 205, 255), (60, 150, 255)), F=((255, 190, 130), (255, 120, 40)), G=((235, 235, 245), (150, 150, 170)))
-def _groups():
-    G_ = []
-    for p in P:
-        cur = []
-        for w in p['words']:
-            if cur and (len(cur) >= 3 or sum(len(x['w']) for x in cur) + len(w['w']) > 13):
-                G_.append((cur, p['spk'])); cur = []
-            cur.append(w)
-        if cur: G_.append((cur, p['spk']))
-    return G_
-GROUPS = _groups()
+# ================================================================ captions (robust, line-synced)
+SPK = dict(R=((255, 255, 255), (255, 226, 50)), D=((150, 205, 255), (60, 150, 255)), G=((235, 235, 245), (150, 150, 170)))
 def captions(img, t):
-    for gi, (g, spk) in enumerate(GROUPS):
-        t0 = g[0]['t0'] - .04; t1 = g[-1]['t1'] + .14
-        if gi + 1 < len(GROUPS): t1 = min(t1, GROUPS[gi + 1][0][0]['t0'] - .04)
-        if t0 <= t < t1 and t < END: break
-    else: return img
-    k = clamp((t - t0) / .09); sc_ = .78 + .22 * ease_out(k) + .06 * math.sin(k * math.pi)
-    size = int((112 if spk != 'R' else 104) * sc_); f = font(size, LG); dr = ImageDraw.Draw(img)
-    words = [w['w'].upper() for w in g]
-    widths = [dr.textlength(w, font=f) for w in words]; sp = size * .26
+    show = None
+    for p in P:
+        if p['t0'] - .03 <= t < p['t1'] + .12 and t < END:
+            show = p; break
+    if show is None: return img
+    spk = show['spk']; words = show['text'].split(); n = len(words)
+    dur = max(.01, show['t1'] - show['t0'])
+    def wt(i): return show['t0'] + dur * i / n, show['t0'] + dur * (i + 1) / n
+    size = 104 if spk == 'R' else 108
+    f = font(size, LG); dr = ImageDraw.Draw(img, 'RGBA')
+    U = [w.upper() for w in words]
+    widths = [dr.textlength(w, font=f) for w in U]; sp = size * .24
     lines = [[]]; lw = 0
     for i, wd in enumerate(widths):
         if lines[-1] and lw + wd > W * .86: lines.append([]); lw = 0
         lines[-1].append(i); lw += wd + sp
-    y = int(H * .715) - (len(lines) - 1) * size * .55
+    line_h = size * 1.12
+    y0 = int(H * .695) - (len(lines) - 1) * line_h
+    maxw = max(sum(widths[i] for i in ln) + sp * (len(ln) - 1) for ln in lines)
+    pad = size * .55
+    dr.rounded_rectangle([(W - maxw) / 2 - pad, y0 - size * .4, (W + maxw) / 2 + pad, y0 + len(lines) * line_h + size * .12], size * .3, fill=(8, 8, 18, 155))
     base, hi = SPK[spk]
+    y = y0
     for ln in lines:
-        tw_ = sum(widths[i] for i in ln) + sp * (len(ln) - 1); x = (W - tw_) / 2
+        tw = sum(widths[i] for i in ln) + sp * (len(ln) - 1); x = (W - tw) / 2
         for i in ln:
-            act = g[i]['t0'] - .03 <= t < g[i]['t1'] + .03 or (i == len(g) - 1 and t >= g[i]['t0'])
-            dr.text((x + 5, y + 7), words[i], font=f, fill=(0, 0, 0), anchor='ls', stroke_width=int(size * .1), stroke_fill=(0, 0, 0))
-            dr.text((x, y), words[i], font=f, fill=hi if act else base, anchor='ls', stroke_width=int(size * .1), stroke_fill=(12, 12, 16))
+            a, b_ = wt(i); act = a - .03 <= t < b_ + .03 or (i == n - 1 and t >= a)
+            dr.text((x + 4, y + 6), U[i], font=f, fill=(0, 0, 0), anchor='ls', stroke_width=int(size * .1), stroke_fill=(0, 0, 0))
+            dr.text((x, y), U[i], font=f, fill=hi if act else base, anchor='ls', stroke_width=int(size * .1), stroke_fill=(12, 12, 16))
             x += widths[i] + sp
-        y += size * 1.1
+        y += line_h
     return img
 
 def shot_at(t):

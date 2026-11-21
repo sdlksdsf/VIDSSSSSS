@@ -1,4 +1,4 @@
-"""Short 6 soundtrack: bouncy pizzicato bed + story sfx mixed with narration -> build/s6/mix.wav"""
+"""Short 6 soundtrack: bouncy pizzicato bed + story sfx mixed with narration -> build/s6b/mix.wav"""
 import numpy as np, wave, sys
 from scipy.signal import fftconvolve, butter, lfilter
 sys.path.insert(0, 'short6')
@@ -42,7 +42,7 @@ ir_t = tt(1.2); ir = rng.standard_normal(len(ir_t)) * np.exp(-ir_t * 6); ir = fi
 def rev(x, wet): return x + fftconvolve(x, ir)[:len(x)] * wet
 music = rev(music, .25); sfx = rev(sfx, .2)
 cutn = int((E['end'] + .03) * SR); music[cutn:] = 0; sfx[cutn:] = 0; dry[cutn:] = 0
-w = wave.open("build/s6/vo.wav"); vo = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(float) / 32768; w.close()
+w = wave.open("build/s6b/vo.wav"); vo = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(float) / 32768; w.close()
 vo = filt(vo, 70); v = np.zeros(N); v[:min(N, len(vo))] = vo[:N]
 e = np.sqrt(np.maximum(1e-9, lfilter([1 - .999], [1, -.999], v * v))); g = np.minimum(1.0, (0.16 / np.maximum(e, 1e-4)) ** .4); v = v * g; v /= np.abs(v).max() / .92
 ve = np.sqrt(lfilter([1 - .9995], [1, -.9995], v * v)); duck = 1 - .4 * np.clip(ve / .08, 0, 1)
@@ -52,5 +52,5 @@ def arms(x, m=None):
 vr = arms(v, ve > .03); mus = music * duck; mus *= (.2 * vr) / arms(mus)
 fx = (sfx * .55 + dry * .5) * (1 - .35 * np.clip(ve / .08, 0, 1)); fx *= min(1.0, .55 / np.abs(fx).max())
 mix = (np.tanh((v + mus + fx) * 1.1) * .97)[:int(DUR * SR)]
-w = wave.open("build/s6/mix.wav", "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((np.stack([mix, mix], 1) * 32767).astype(np.int16).tobytes()); w.close()
+w = wave.open("build/s6b/mix.wav", "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((np.stack([mix, mix], 1) * 32767).astype(np.int16).tobytes()); w.close()
 print("mix ok", len(mix) / SR)

@@ -1,6 +1,9 @@
-SHORT 6 PUBLISHING PACK — "Forget A Name In This Town… 🤯"
-Video: render/in-this-town-forget-a-name.mp4 (61.3 s, 1080x1920, 24 fps)
-Narration: voice-09 (Red), voice-10 (Dex), voice-11 (fire chief/Gary) — all new.
+SHORT 6 PUBLISHING PACK — "Forget A Name In This Town… 🤯" (REMAKE v2)
+Video: render/in-this-town-forget-a-name.mp4 (62.5 s, 1080x1920, 24 fps)
+Remake note: v1 was broken (too-deep narrator, drifting captions, glitchy effects,
+cut-off framing). v2 rebuilt end to end: new lighter narrator voice (voice-12),
+Dex (voice-13), Gary (voice-14); line-synced captions with readability bar;
+smoothed effects; re-framed cameras.
 
 === YOUTUBE SHORTS ===
 Title:    Forget A Name In This Town… 🤯
