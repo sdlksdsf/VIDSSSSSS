@@ -1,10 +1,11 @@
-"""Short 6 (REMAKE): 'In This Town, If You Forget A Name...' - shots, robust captions, renderer."""
+"""Short 6 (REMAKE v3): 'In This Town, If You Forget A Name...' - shots, clean captions, renderer."""
 import json, math, random, sys, os
 sys.path.insert(0, 'src'); sys.path.insert(0, 'short2')
 import numpy as np
 from PIL import Image, ImageDraw
 from world import *
 
+LG = "fonts/LuckiestGuy-Regular.ttf"
 TL = json.load(open("build/s6b/timeline.json")); P = TL["lines"]; FPS = 24
 def ps(i): return P[i]["t0"]
 def pe(i): return P[i]["t1"]
@@ -126,18 +127,6 @@ def dust(sc, p, t, n=6, up=3.0, col=(200, 190, 175)):
         sc.sprite((p[0] + math.sin(u * 9 + i) * .8, p[1] + u * up, p[2] + math.cos(u * 7 + i) * .8), .5 + u * .7, .5 + u * .7, col, alpha=int(160 * (1 - u)), bias=-2)
 
 # ---------------------------------------------------------------- overlays
-BANG = "fonts/Bangers-Regular.ttf"; LG = "fonts/LuckiestGuy-Regular.ttf"
-def bigtext(txt, pt, k, size=150, col=(255, 235, 70), rot=0, st=(20, 16, 50)):
-    def f(dr):
-        if k <= 0: return
-        s = int(size * (.55 + .45 * ease_out(min(1, k * 5))) * (1 + .04 * math.sin(k * 22)))
-        f_ = font(s, BANG)
-        if rot:
-            tmp = Image.new('RGBA', (int(s * len(txt) * .7) + 80, int(s * 1.6)), (0, 0, 0, 0)); d2 = ImageDraw.Draw(tmp)
-            d2.text((tmp.width / 2, tmp.height / 2), txt, font=f_, fill=col + (255,), anchor='mm', stroke_width=int(s * .09), stroke_fill=st + (255,))
-            tmp = tmp.rotate(rot, expand=True, resample=Image.BICUBIC); dr._image.paste(tmp, (int(pt[0] - tmp.width / 2), int(pt[1] - tmp.height / 2)), tmp)
-        else: dr.text(pt, txt, font=f_, fill=col + (255,), anchor='mm', stroke_width=int(s * .09), stroke_fill=st + (255,))
-    return f
 def PP(**k):
     d = dict(sat=1.26, bloom=.42, vig=.18, con=1.06, tint=(1.03, 1.0, .97)); d.update(k); return d
 
@@ -154,9 +143,7 @@ def A0(lt, d, t):       # 0-1: the rule
         folk(sc, i + 40, p, 180, walk(t + i * .4, 1.8, 26), lant=None, kid=(i % 3 == 0))
     red(sc, (-1.6, 0, 2.5), 12, walk(t, 1.6, 26), dict(eyes='open', mouth='smile', brows='up'))
     cam = Cam2(V(.2, 3.4, lerp(11, 7.2, ease_out(lt / d))), V(-1.4, 2.7, 1.5), 46)
-    ov = [bigtext("IF YOU FORGET A NAME...", (W / 2, H * .16), lt - .1, 96, (255, 255, 255), 0, (20, 30, 90)),
-          bigtext("THEIR FACE GOES BLURRY.", (W / 2, H * .25), lt - .7, 84, (255, 235, 70), 0, (20, 30, 90))]
-    return sc, cam, PP(overlay=ov, flash=.2 * pulse(lt, .1, .1))
+    return sc, cam, PP(flash=.2 * pulse(lt, .1, .1))
 def A1(lt, d, t):       # 2-3: smudge gag
     sc = day(); bakery(sc, t)
     b = math.sin(t * 7)
@@ -164,8 +151,7 @@ def A1(lt, d, t):       # 2-3: smudge gag
     kid(sc, (-4.0, 0, -1.0), 20, dict(al=(60 + 20 * b, 10), ar=(30, 30), head=(14, 4), y=.03 * b), dict(eyes='open', mouth='smile', brows='up'))
     k = ease_out(clamp((lt - .35) / .5))
     cam = Cam2(V(-1.2, 3.0, lerp(7.5, 6.0, k)), V(-2.6, 2.8, -2.0), 44)
-    ov = [bigtext("SMUDGE", (W / 2, H * .15), lt - .5, 210, (255, 140, 60), 6, (40, 20, 10))]
-    return sc, cam, PP(overlay=ov)
+    return sc, cam, PP()
 def B(lt, d, t):        # 4-7: I remember everyone
     sc = day(); school(sc, t, 0)
     tk = talk(t, 'R')
@@ -183,8 +169,7 @@ def C(lt, d, t):        # 8-9: I saw a blur
     red(sc, (-1.5, 0, 2.2), 20, dict(al=(70, 10), ar=(30, 30), head=(-14, 6), y=.03 * b), dict(eyes='wide', mouth='o', brows='up', look=(1, 0)))
     kk = ease_out(clamp(lt / .8))
     cam = Cam2(lerp(V(-.6, 3.3, 7.4), V(1.9, 3.6, 5.6), kk), lerp(V(-1.2, 3.0, 1.8), V(1.5, 3.1, 2.4), kk), 42)
-    ov = [bigtext("...BUDDY?", (W / 2, H * .16), lt - .4, 130, (255, 255, 255), 0, (20, 30, 90))] if lt < d * .6 else []
-    return sc, cam, PP(overlay=ov)
+    return sc, cam, PP()
 D_CRASH = .45
 def DD(lt, d, t):       # 10-13: roof caves in, fire chief
     crash = lt >= D_CRASH; sh = ease_out((lt - D_CRASH) / .35)
@@ -200,8 +185,7 @@ def DD(lt, d, t):       # 10-13: roof caves in, fire chief
     cp = (lerp(8.5, 3.4, run_in), 0, lerp(4.0, 2.0, run_in))
     chief(sc, cp, yaw_to(cp, (-1.2, 0, 2.0)), run(t, 2.6, 40) if run_in < 1 else dict(al=(30, -20), ar=(30, -20), lean=6, head=(0, -6)), dict(eyes='open', mouth='flat', brows='flat'))
     cam = Cam2(V(.6, 3.2, 8.6) + shake(t, .18 * pulse(lt, D_CRASH, .5)), V(0, 3.0, -1.0), 50)
-    ov = [bigtext("CRASH!", (W / 2, H * .13), lt - D_CRASH, 300, (255, 235, 70), -6, (40, 20, 10))] if crash else []
-    return sc, cam, PP(overlay=ov, flash=.45 * pulse(lt, D_CRASH, .1))
+    return sc, cam, PP(flash=.45 * pulse(lt, D_CRASH, .1))
 E_BASE = .5
 def EE(lt, d, t):       # 14: shouts into the rubble
     sc = day(); rubble(sc, t)
@@ -214,22 +198,17 @@ def EE(lt, d, t):       # 14: shouts into the rubble
     red(sc, (-1.0, 0, 2.6), 18, pose, dict(eyes='wide' if not deflated else 'tired', mouth='o' if shout else ('frown' if deflated else 'flat'), brows='up' if not deflated else 'sad', look=(0, .3)))
     gary(sc, (3.6, 0, 3.4), -120, dict(y=.12 * abs(math.sin(t * 11)), al=(20, 40), ar=(20, 40), lean=-6), dict(eyes='happy', mouth='grin'))
     cam = Cam2(V(-.8, 3.0, lerp(7.6, 6.2, lt / d)) + shake(t, .05 * shout), V(-1.0, 2.9, 2.2), 44)
-    ov = [bigtext("BUDDY!", (W / 2, H * .14), lt - E_BASE, 240, (255, 255, 255), 4, (20, 30, 90))] if sh1 and lt < E_BASE + .8 else \
-         [bigtext("DUDE!", (W / 2, H * .14), lt - E_BASE - .85, 240, (255, 255, 255), -4, (20, 30, 90))] if sh2 and lt < E_BASE + 1.65 else \
-         [bigtext("BEST FRIEND!", (W / 2, H * .14), lt - E_BASE - 1.7, 210, (255, 255, 255), 2, (20, 30, 90))] if sh3 and lt < E_BASE + 2.4 else []
-    return sc, cam, PP(overlay=ov)
+    return sc, cam, PP()
 def FF(lt, d, t):       # 15-17: gary's line, red determined
     sc = day(); rubble(sc, t)
     if lt < d * .45:
         gary(sc, (1.2, 0, 2.8), 10, dict(y=.14 * abs(math.sin(t * 12)), al=(20, 50), ar=(20, 50), lean=-8, head=(0, 8)), F('G', t, eyes='happy', mouth='grin'))
         cam = Cam2(V(.4, 3.0, 6.6), V(1.2, 3.0, 2.8), 40)
-        ov = [bigtext("HA!", (W * .7, H * .18), lt - .1, 150, (255, 235, 70), -8)]
     else:
         k = smooth((lt - d * .45) / .5)
         red(sc, (-1.2, 0, 2.8), 18, dict(al=(80, 10), ar=(40, 40), lean=6, head=(0, 10), y=.03 * math.sin(t * 9)), dict(eyes='open', mouth='flat', brows='up'))
         cam = Cam2(V(-.6, 3.0, lerp(7.0, 6.2, k)), V(-1.2, 2.9, 2.8), 42)
-        ov = []
-    return sc, cam, PP(overlay=ov)
+    return sc, cam, PP()
 def GG(lt, d, t):       # 18: flashback, first day
     sc = day(warm=1)
     school(sc, t, 0)
@@ -252,9 +231,7 @@ def HH(lt, d, t):       # 19-22: Dex! face snaps clear
     red(sc, (-1.2, 0, 2.6), 16, dict(al=(lerp(70, 130, shout), 10), ar=(30, 30), lean=lerp(0, 10, shout), head=(0, lerp(4, 22, shout)), y=.04 * b), dict(eyes='wide', mouth='o' if shout else 'grin', brows='up', look=(1, .2)))
     dex(sc, (1.5, 0, 2.4), -30, dict(y=.05 * abs(math.sin(t * 6)), al=(30, 30), ar=(30, 30), head=(0, 6)), dict(eyes='grin', mouth='grin', brows='up') if snap else {}, blur=bl, t=t)
     cam = Cam2(V(.2, 3.0, lerp(7.4, 5.9, clamp(lt / d))) + shake(t, .06 * shout), V(.1, 2.9, 2.3), 44)
-    ov = [bigtext("DEX!", (W / 2, H * .12), lt - H_SNAP, 330, (255, 255, 255), 0, (20, 30, 90))] if shout else \
-         [bigtext("CLEAR!", (W * .68, H * .19), lt - H_SNAP - .15, 200, (90, 255, 140), -6, (20, 60, 30))] if snap else []
-    return sc, cam, PP(overlay=ov, flash=.5 * pulse(lt, H_SNAP, .1))
+    return sc, cam, PP(flash=.5 * pulse(lt, H_SNAP, .1))
 def II(lt, d, t):       # 23-25: chase + punchline
     sc = day(warm=1); town(sc, t, walkers=6)
     hid = lt > d * .35
@@ -264,10 +241,7 @@ def II(lt, d, t):       # 23-25: chase + punchline
     for i, z in enumerate((-6, -14)):
         folk(sc, i + 60, ((i - .5) * 9, 0, z), 0, dict(y=.1 * abs(math.sin(t * 8 + i)), al=(20, 50), ar=(20, 50)), face=dict(eyes='happy', mouth='grin'), lant=None, kid=(i % 2 == 0))
     cam = Cam2(V(.0, 3.2, lerp(8.4, 6.6, lt / d)), V(.2, 2.9, 2.2), 48)
-    k = clamp((lt - d * .75) / .25)
-    ov = [bigtext("HIS FACE IS FINE.", (W / 2, H * .18), k, 96, (255, 255, 255), 0, (20, 30, 90)),
-          bigtext("MINE ISN'T.", (W / 2, H * .27), max(0, k - .15), 110, (255, 235, 70), 0, (20, 30, 90))]
-    return sc, cam, PP(overlay=ov, tint=(1.05, .97, .92), bloom=.4)
+    return sc, cam, PP(tint=(1.05, .97, .92), bloom=.4)
 
 SHOTS = [(0, A0), (cut(2), A1), (cut(4), B), (cut(8), C), (cut(10), DD), (cut(12), EE), (cut(15), FF), (cut(17), GG), (cut(19), HH), (cut(23), II), (END, None)]
 
@@ -277,40 +251,49 @@ def events():
                 shout1=st['EE'] + E_BASE, shout2=st['EE'] + E_BASE + .85, shout3=st['EE'] + E_BASE + 1.7, laugh=st['FF'] + .2,
                 flashback=st['GG'], dexclear=st['HH'] + H_SNAP, chase=st['II'], punch=st['II'] + 2.0)
 
-# ================================================================ captions (robust, line-synced)
+# ================================================================ captions (same clean style as shorts 1-3)
 SPK = dict(R=((255, 255, 255), (255, 226, 50)), D=((150, 205, 255), (60, 150, 255)), G=((235, 235, 245), (150, 150, 170)))
-def captions(img, t):
-    show = None
+def _groups():
+    G_ = []
     for p in P:
-        if p['t0'] - .03 <= t < p['t1'] + .12 and t < END:
-            show = p; break
-    if show is None: return img
-    spk = show['spk']; words = show['text'].split(); n = len(words)
-    dur = max(.01, show['t1'] - show['t0'])
-    def wt(i): return show['t0'] + dur * i / n, show['t0'] + dur * (i + 1) / n
-    size = 104 if spk == 'R' else 108
-    f = font(size, LG); dr = ImageDraw.Draw(img, 'RGBA')
-    U = [w.upper() for w in words]
-    widths = [dr.textlength(w, font=f) for w in U]; sp = size * .24
+        words = p['text'].split(); n = len(words); dur = max(.01, p['t1'] - p['t0'])
+        wts = [p['t0'] + dur * i / n for i in range(n + 1)]
+        cur = []
+        for i, w in enumerate(words):
+            if cur and (len(cur) >= 3 or sum(len(x) for x in cur) + len(w) > 13):
+                g0 = wts[i - len(cur)]; g1 = wts[i]
+                G_.append((cur, p['spk'], g0, g1, [(g0 + (g1 - g0) * q / len(cur), g0 + (g1 - g0) * (q + 1) / len(cur)) for q in range(len(cur))]))
+                cur = []
+            cur.append(w)
+        if cur:
+            g0 = wts[n - len(cur)]; g1 = wts[n]
+            G_.append((cur, p['spk'], g0, g1, [(g0 + (g1 - g0) * q / len(cur), g0 + (g1 - g0) * (q + 1) / len(cur)) for q in range(len(cur))]))
+    return G_
+GROUPS = _groups()
+def captions(img, t):
+    for gi, (g, spk, t0, t1, wwins) in enumerate(GROUPS):
+        if t0 - .04 <= t < t1 + .14:
+            if gi + 1 < len(GROUPS): t1 = min(t1, GROUPS[gi + 1][2] - .04)
+            if t0 <= t < t1 and t < END: break
+    else: return img
+    k = clamp((t - t0) / .09); sc_ = .78 + .22 * ease_out(k) + .06 * math.sin(k * math.pi)
+    size = int((112 if spk != 'R' else 104) * sc_); f = font(size, LG); dr = ImageDraw.Draw(img)
+    words = [w.upper() for w in g]
+    widths = [dr.textlength(w, font=f) for w in words]; sp = size * .26
     lines = [[]]; lw = 0
     for i, wd in enumerate(widths):
         if lines[-1] and lw + wd > W * .86: lines.append([]); lw = 0
         lines[-1].append(i); lw += wd + sp
-    line_h = size * 1.12
-    y0 = int(H * .695) - (len(lines) - 1) * line_h
-    maxw = max(sum(widths[i] for i in ln) + sp * (len(ln) - 1) for ln in lines)
-    pad = size * .55
-    dr.rounded_rectangle([(W - maxw) / 2 - pad, y0 - size * .4, (W + maxw) / 2 + pad, y0 + len(lines) * line_h + size * .12], size * .3, fill=(8, 8, 18, 155))
+    y = int(H * .715) - (len(lines) - 1) * size * .55
     base, hi = SPK[spk]
-    y = y0
     for ln in lines:
-        tw = sum(widths[i] for i in ln) + sp * (len(ln) - 1); x = (W - tw) / 2
+        tw_ = sum(widths[i] for i in ln) + sp * (len(ln) - 1); x = (W - tw_) / 2
         for i in ln:
-            a, b_ = wt(i); act = a - .03 <= t < b_ + .03 or (i == n - 1 and t >= a)
-            dr.text((x + 4, y + 6), U[i], font=f, fill=(0, 0, 0), anchor='ls', stroke_width=int(size * .1), stroke_fill=(0, 0, 0))
-            dr.text((x, y), U[i], font=f, fill=hi if act else base, anchor='ls', stroke_width=int(size * .1), stroke_fill=(12, 12, 16))
+            a, b_ = wwins[i]; act = a - .03 <= t < b_ + .03 or (i == len(g) - 1 and t >= a)
+            dr.text((x + 5, y + 7), words[i], font=f, fill=(0, 0, 0), anchor='ls', stroke_width=int(size * .1), stroke_fill=(0, 0, 0))
+            dr.text((x, y), words[i], font=f, fill=hi if act else base, anchor='ls', stroke_width=int(size * .1), stroke_fill=(12, 12, 16))
             x += widths[i] + sp
-        y += line_h
+        y += size * 1.1
     return img
 
 def shot_at(t):
