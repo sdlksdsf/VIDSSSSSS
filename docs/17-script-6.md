@@ -1,8 +1,8 @@
 # Short #6 — Script: "In This Town, If You Forget A Name, Their Face Goes Blurry"
 
 **Status: APPROVED by the user ("Approve, make the video"). Voices: voice-09 (Red),
-voice-10 (Dex), voice-11 (fire chief/Gary) — all new. Video rendered; only the final
-punchline voice clip (c11) is still pending the per-turn speech cap.**
+voice-10 (Dex), voice-11 (fire chief/Gary) — all new. FINAL CUT delivered: 61.3 s,
+render/in-this-town-forget-a-name.mp4, committed and uploaded to Drive.**
 
 ## Story (approved direction)
 
