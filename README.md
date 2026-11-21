@@ -56,3 +56,13 @@ python short5/film.py render 0 1 /tmp/f5
 ffmpeg -framerate 24 -i /tmp/f5/%05d.jpg -i build/s5/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/how-a-bruise-changes-colour.mp4
 ```
 Shot images are AI-generated (`short5/img/`); the purple / green / yellow stages are derived from them in `short5/film.py`.
+
+## Short 6 - Forget A Name In This Town (Roblox animated story)
+```
+python short6/vo.py        # narration alignment -> build/s6/vo.wav + timeline.json
+python short6/audio.py     # bouncy bed + sfx mix -> build/s6/mix.wav
+python short6/film.py render 0 2 /tmp/f6   # 2 parts
+ffmpeg -framerate 24 -i /tmp/f6/%05d.jpg -i build/s6/mix.wav -c:v libx264 -crf 19 -pix_fmt yuv420p -c:a aac -shortest render/in-this-town-forget-a-name.mp4
+```
+Core gag: Dex's face renders blurred (blank face + haze sprites, desaturated colours)
+until Red screams his name — then it snaps clear with a flash + "CLEAR!" burst.
