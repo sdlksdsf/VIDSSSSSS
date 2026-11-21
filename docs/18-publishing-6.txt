@@ -1,8 +1,6 @@
 SHORT 6 PUBLISHING PACK — "Forget A Name In This Town… 🤯"
-Video: render/in-this-town-forget-a-name.mp4 (59.6 s, 1080x1920, 24 fps)
-Note: final punchline voice line (last 3 narration lines) is a silent placeholder in
-this cut — the real voice clip is generated next turn (speech cap), then the final
-~10 s is re-rendered and re-uploaded.
+Video: render/in-this-town-forget-a-name.mp4 (61.3 s, 1080x1920, 24 fps)
+Narration: voice-09 (Red), voice-10 (Dex), voice-11 (fire chief/Gary) — all new.
 
 === YOUTUBE SHORTS ===
 Title:    Forget A Name In This Town… 🤯
